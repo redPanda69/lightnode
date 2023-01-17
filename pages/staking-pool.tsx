@@ -114,9 +114,9 @@ const StakingPoolPage: NextPage = (props) => {
       let MPdat = {"Month":month[i],"Profit":""}
       if (data[Count] && i+1 == data[Count].month){
         SPdat.Stakes = formatEther(data[Count].stake)
-        SPdat.Rewards = (parseFloat(formatEther(data[Count].rewards))*0.5).toPrecision(2)
+        SPdat.Rewards = (parseFloat(formatEther(data[Count]?data[Count].rewards:"0"))*0.5).toPrecision(2)
         if (address){
-          MPdat.Profit = formatEther(MPdata[Count].mProfit)
+          MPdat.Profit = formatEther(MPdata[Count]?MPdata[Count].mProfit:"0")
         }  
         Count +=1
       }

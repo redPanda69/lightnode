@@ -39,7 +39,7 @@ async function queryDatabase(objective:any,address:any,month:any,interval:any,ye
         for (let i = 0;i< rows1.length;i++){
             let monthlystake = rows1[i]['SUM(amt)']-(rows2[i]? rows2[i]['SUM(amt)']:0)
             let monthlyreward = monthlystake
-            let monthlyprofit =  monthlystake
+            let monthlyprofit =  monthlystake + monthlyreward
             let row = {month:rows1[i]['MONTH(date)'],mProfit:monthlyprofit,mStake:monthlystake,mReward:monthlyreward}
             rows.push(row)
         }
