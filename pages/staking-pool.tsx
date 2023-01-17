@@ -95,13 +95,13 @@ const StakingPoolPage: NextPage = (props) => {
     let date= new Date()
     let data = (await (await fetch(`/api/staker?aim=monthlyuserstakes&address=${address}&month=${date.getMonth()+1}`)).json()).query_result 
     let uRewards
-    
     let uStakes;
     uStakes = ethers.utils.formatEther(data[0]?String(data[0].mStake):"0")
     uRewards = ethers.utils.formatEther(data[0]?String(data[0].mReward):"0")
     setUserRewards(parseFloat(uRewards)*0.5)
     setUserStake(parseFloat(uStakes))
-    setUserMP(userStake+userRewards)
+    console.log(userStake,userRewards)
+    setUserMP(parseFloat(uStakes)+parseFloat(uRewards)*0.5)
     
   }
   async function updateYearly(address:string) {
