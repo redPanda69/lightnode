@@ -41,6 +41,7 @@ const StakingPoolPage: NextPage = (props) => {
   const [showCharts, setShowCharts] = useState(false)
   const [userStake, setUserStake] = useState(0.0)
   const [userRewards, setUserRewards] = useState(0.00)
+  const [userMP, setUserMP] = useState(0.00)
 
   const onChangeType = (isPositive: boolean) => {
     if (isPositive) {
@@ -98,8 +99,9 @@ const StakingPoolPage: NextPage = (props) => {
     let uStakes;
     uStakes = ethers.utils.formatEther(data[0]?String(data[0].mStake):"0")
     uRewards = ethers.utils.formatEther(data[0]?String(data[0].mReward):"0")
-    setUserRewards(parseFloat(uRewards))
+    setUserRewards(parseFloat(uRewards)*0.5)
     setUserStake(parseFloat(uStakes))
+    setUserMP(userStake+userRewards)
     
   }
   async function updateYearly(address:string) {
@@ -202,7 +204,7 @@ const StakingPoolPage: NextPage = (props) => {
             <LNProgress animation={true} percentage={80} />
           </LNCard>:<LNCard title={"Waiting....."} titlePos="center" variant="danger"><h1 className = {`text-lg text-center`}>Connecting to DB..</h1></LNCard>}
           {showCharts?<LNCard title="Monthly Profits" variant="danger">
-            <p className="text-2xl mt-4 mb-2">$35,996</p>
+            <p className="text-2xl mt-4 mb-2">{userMP}</p>
             <p className="mb-2">Progress - 95%</p>
             <LNProgress animation={true} variant="danger" percentage={30} />
           </LNCard>:<LNCard title={"Waiting....."} titlePos="center" variant="danger"><h1 className = {`text-lg text-center`}>Connecting to DB..</h1></LNCard>}
