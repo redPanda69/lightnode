@@ -32,6 +32,7 @@ import { formatEther } from "ethers/lib/utils";
 
 const StakingPoolPage: NextPage = (props) => {
   const [text, setText] = useState("");
+  const [Address, setAddress] = useState("");
   const [type, setType] = useState("Deposit");
   const [amount, setAmount] = useState("");
   const [permission, setPermission] = useState(false);
@@ -42,6 +43,8 @@ const StakingPoolPage: NextPage = (props) => {
   const [userStake, setUserStake] = useState(0.0)
   const [userRewards, setUserRewards] = useState(0.00)
   const [userMP, setUserMP] = useState(0.00)
+  const [Apr, setApr] = useState(0.0)
+  const [rewardCycle,setrewardCycle] = useState({hr:0,min:0,sec:0})
 
   const onChangeType = (isPositive: boolean) => {
     if (isPositive) {
@@ -96,13 +99,14 @@ const StakingPoolPage: NextPage = (props) => {
     let data = (await (await fetch(`/api/staker?aim=monthlyuserstakes&address=${address}&month=${date.getMonth()+1}`)).json()).query_result 
     let uRewards
     let uStakes;
+    let apr;
+    apr = data[0].apr
     uStakes = ethers.utils.formatEther(data[0]?String(data[0].mStake):"0")
     uRewards = ethers.utils.formatEther(data[0]?String(data[0].mReward):"0")
     setUserRewards(parseFloat(uRewards)*0.5)
     setUserStake(parseFloat(uStakes))
-    console.log(userStake,userRewards)
     setUserMP(parseFloat(uStakes)+parseFloat(uRewards)*0.5)
-    
+    setApr(apr)
   }
   async function updateYearly(address:string) {
     let date = new Date()
@@ -129,6 +133,12 @@ const StakingPoolPage: NextPage = (props) => {
     setMonthlyProfits(newUserProfits)
   }
   useEffect(()=>{
+    setTimeout(() => {
+      var now = new Date()
+      setrewardCycle({hr:23 - now.getHours(),min:59- now.getMinutes(),sec:59-now.getSeconds(),})
+    },1000)
+  },[rewardCycle])
+  useEffect(()=>{
     const ethereum = (window as any).ethereum;
     const provider = new ethers.providers.Web3Provider(ethereum);
     if (!provider) {
@@ -136,27 +146,27 @@ const StakingPoolPage: NextPage = (props) => {
       return;
     }
     var conApi = () => {
-      try {
         const signer = provider.getSigner()
-        signer.getAddress().then((address)=>{
-          if (address){
-            updateMonthly(address)
-            updateYearly(address)
-            setShowCharts(true)
-          } 
-        }).catch((e)=>{})
-      } catch (error) {
-        console.log("error")
-      }
-      updateYearly("")
+        if (signer){
+          signer.getAddress().then((address)=>{
+            setAddress(address)
+          })
+        }
     }
-    const apiConTimeout = setTimeout(()=>{
-      conApi()
-    },5000)
-    if (showCharts){
-      clearTimeout(apiConTimeout)
+    if (!showCharts){
+      const connectionTimeout = setTimeout(()=>{
+        conApi()
+      },5000)
     }
+    
   })
+  useEffect(()=>{
+    if (Address){
+      updateMonthly(Address)
+      updateYearly(Address)
+      setShowCharts(true)
+    }
+  },[Address])
   useEffect(() => {
     console.log(type, permission);
   }, [permission, type]);
@@ -173,10 +183,10 @@ const StakingPoolPage: NextPage = (props) => {
       />
       <div id="staking-pool" className="pb-4">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-          <LNCard title="APY">
-            <p className="text-6xl mt-4 mb-2">45%</p>
+          {showCharts?<LNCard title="APY">
+            <p className="text-6xl mt-4 mb-2">{Apr}%</p>
             <p>Annual staking rewards</p>
-          </LNCard>
+          </LNCard>:<LNCard title={"Waiting....."} titlePos="center" variant="danger"><h1 className = {`text-lg text-center`}>Connecting to DB..</h1></LNCard>}
           {showCharts?<LNCard title="Your Rewards" variant="success">
             <p className="flex items-center text-2xl mt-4 mb-2">
               <Image
@@ -187,8 +197,8 @@ const StakingPoolPage: NextPage = (props) => {
               />
               <span className="ml-2">{userRewards}</span>
             </p>
-            <p className="mb-2">Next reward cycle: 18h 22m 10s</p>
-            <LNProgress animation={true} variant="success" percentage={70} />
+            <p className="mb-2">Next reward cycle: {rewardCycle.hr  }h {rewardCycle.min}m { rewardCycle.sec}s</p>
+            <LNProgress animation={true} variant="success" percentage={28} />
           </LNCard>:<LNCard title={"Waiting....."} titlePos="center" variant="danger"><h1 className = {`text-lg text-center`}>Connecting to DB..</h1></LNCard>}
           {showCharts?<LNCard title="Your Stake" variant="primary">
             <p className="flex items-center text-2xl mt-4 mb-2">
@@ -200,7 +210,7 @@ const StakingPoolPage: NextPage = (props) => {
               />
               <span className="ml-2">{userStake}</span>
             </p>
-            <p className="mb-2">Next reward cycle: 18h 22m 10s</p>
+            <p className="mb-2">Next reward cycle: {rewardCycle.hr  }h {rewardCycle.min}m { rewardCycle.sec}s</p>
             <LNProgress animation={true} percentage={80} />
           </LNCard>:<LNCard title={"Waiting....."} titlePos="center" variant="danger"><h1 className = {`text-lg text-center`}>Connecting to DB..</h1></LNCard>}
           {showCharts?<LNCard title="Monthly Profits" variant="danger">
